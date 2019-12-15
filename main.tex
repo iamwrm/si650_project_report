@@ -6,6 +6,12 @@
 \usepackage{multicol}
 \usepackage{url}
 \usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{caption}
+
+\newenvironment{Figure}
+  {\par\medskip\noindent\minipage{\linewidth}}
+  {\endminipage\par\medskip}
 
 \usepackage[letterpaper,  margin=1in]{geometry}
 
@@ -17,6 +23,8 @@
 \begin{document}
 
 \maketitle
+
+
 
 \begin{multicols}{2}
     \section*{Abstract}
@@ -41,6 +49,14 @@
 
     \section{Design Description}
 
+	The whole process of our design process including getting data, processing data, selecting model and building interface. And the working process of our final design is shown as following figure:
+	
+	\begin{Figure}
+    	\center
+  		\includegraphics[width=0.5\linewidth]{process.jpg}
+  		\captionof{figure}{Working process of our searching system}
+	\end{Figure}
+
     \subsection{Dataset}
     We obtained our data from two sources:
 
@@ -49,17 +65,35 @@
 
     IMDB website
     \url{(https://www.imdb.com/?ref_=nv_home)}
+    
+    We first download a csv file from Kaggle with data about overviews and imdb link for each movie. We first try to use these overviews as documents for queries. Then we find that the performance of searching can't fulfill our satisfication so we try to find more documents. Finally, after tring the summary on wikipedia and total scene description on IMDB, we choose keywords on IMDB and use python webscraping to get these data.
 
-    \subsection{Data processing}
+    \subsection{Basic Data processing}
 
-    In this project, our retrieval system is built to retrieve movie by its description.
-    Our data document for each movie contains its overview and keywords related to it.
+    In this project, our retrieval system is built to retrieve movie by its description and our data document for each movie contains its overview and keywords related to it.
+    
+    We first scrape keyword data from a website and combined it with the overview of each movie from the Kaggle dataset into one string. Then, we tokenize the string into words and do stem and lowercase on each word and get lists of words for each document. Finally we remove stopwords and punctuations, and  the document is then ready for query. The above mentioned steps are also applied to query sentences.
+    
+    \subsection{Advanced Data processing}
 
-    We first scrape keyword data from a website and combined it with the overview of each movie from the Kaggle dataset into one string. Then,  we tokenize the string into words and do stem and lowercase on each word. Finally we remove stopwords and punctuations, and  the document is then ready for query. The above mentioned steps are also applied to query sentences.
+    We tried two advanced methods on data to see if the performance of search can be enhanced.
+    
+    First, we thought of adding the synonyms of each words in query so that those words with similar mean as query words in documents would not be missed. For each query we used nltk wordnet to get synonyms for each word in the query and added them into the query. However, the performance become worse instead of bettern. We thought that may be adding synouyms made the query vaguer so that more unrelated results are searched. 
+    
+    Also, we thought of adding weight to different kind of words in query. But that will led to another question that how should we judge the importance of different words. We thought of using part-of-speech tagger to tag each words in query and give more weight to adjectives and verbs. However, there is no distince improvement in the performance of our system. We can do further improvement on our system by trying to find more proper weighting methods on queries.
 
     \subsection{Model}
-
-    We tried several models and observed their performances to choose the best one. The score function in final model we used is BM25+ function (Inspiration from \url{https://www.eecis.udel.edu/~ypeilin/pub/ictir2016_long.pdf)} which is :
+    
+    We first use BM25 score function which is use to give score to each query-document pair by the term frequency(TF) of each word in the query and inverse document frequency(IDF) as following:
+    
+     {
+    \tiny
+    $$
+        S = \sum_{t \in q} \cdot\left[\frac{\left(k_{1}+1\right) \\ \cdot c_{t}^{d}}{c_{t}^{d}+k_{1} \cdot\left(1-b+b \cdot \frac{l_{d}}{L}\right)}\right] \cdot \ln \left(\frac{N+1}{N_{t}}\right)
+    $$
+    }
+    
+    However, the performance of BM25 score function is not so good so we want to find a more proper score function. We tried BM25+ function. The differences between BM25+ and BM25 are that BM25+ add an additional parameter and consider the frequency of each words in query. Since the performance of BM25+ is better and can relatively meet our needs, we finally choose it as our final score function (Inspiration from \url{https://www.eecis.udel.edu/~ypeilin/pub/ictir2016_long.pdf)} which is :
 
     {
     \tiny
@@ -69,11 +103,23 @@
     }
 
 
-    This BM25+ function add two more parameters to change the weight of TF and IDF in the function and it make our performance better in our test query set.
+    This BM25+ function add two more parameters to change the weight of TF and IDF in the function and it make our performance better in our test query set. The performance comparison and analysis will be detailedly discussed in Result and evaluation part.
 
     \subsection{Interface }
 
-    We have also built an interface for users to Input the description they remember.
+    We have also built an interface for users to input the description they remember and will return the result movie name and simple overview. The movie with best score will be shown on the page and user can see more results with lower scores if he slide down the page as following graphs:
+    
+    \begin{Figure}
+    	\center
+  		\includegraphics[width=0.5\linewidth]{interface.jpg}
+  		\captionof{figure}{Interface}
+	\end{Figure}
+	
+	\begin{Figure}
+    	\center
+  		\includegraphics[width=0.5\linewidth]{interface1.jpg}
+  		\captionof{figure}{Interface slide down}
+	\end{Figure}
 
     \section{Results and evaluation}
 
