@@ -28,6 +28,7 @@
 
 \begin{multicols}{2}
     \section*{Abstract}
+    In this report, we describe our work on description-based movie retrieval. Our search engine is motivated by the idea of helping people retrieve movies when they could only remember fragments of the movies. We adopted a dataset with movie titles, descriptions and keywords as our search database. BM25+ function is adapted after we preprocess the dataset with with tokenizing, stemming ,stopword and punctuation removal, and keyword addition. By calculating the harmonic mean of the ranks of the desired answers in our test cases, we are able to evaluate our system and conclude that our search engine has a fairly good performance. 
 
     \section*{Keywords}
 
@@ -39,13 +40,9 @@
 
     \section{Introuction}
 
-    Watching movies has become one of the most popular ways of entertainment and there are hundreds and thousands of new movies produced every year.
-    An average person could have watched dozens or hundreds of movies.
-    It is not rare for someone to bump into an annoying situation when they could only remember a rough story or some segments of the movie, but just could not recall its name.
+    Watching movies has become one of the most popular ways of entertainment, and there are hundreds and thousands of new movies being released every year. The information we recieve is explosing and the challenge of remembering the right title for movie plots is becoming larger and larger, since an average person could have watched dozens or hundreds of movies. It is not rare for someone to bump into an annoying situation when they could only remember a rough story or some segments of the movie, but just could not recall its name. In such cases without a specialized movie search engine, existing search websites will return various results that include not only movies and the search results would not be very ideal with queries composed of common terms but has specialized meanings and indications when it comes to movies.
 
-    In this project, we aim at helping people to retrieve the film they want when they forget the title and could only remember a part of the story.
-    We have designed and implemented a search engine to find corresponding movies with description or keywords provided by the user.
-
+As a result, we we aim at helping people retrieve the film they want when they could only remember a part of the story plot or segments like character names and special props. The search engine we designed and implemented helps with finding the corresponding movies with description or keywords provided by the user that specialize in movies.
 
     \section{Design Description}
 
