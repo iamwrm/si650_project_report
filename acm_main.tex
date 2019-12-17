@@ -91,9 +91,9 @@
 \email{renw@umich.edu}
 \email{emilysym@umich.edu}
 \affiliation{%
-    \institution{School of Information, University of Michigan}
-    \city{Ann Arbor}
-    \state{Michigan}
+  \institution{School of Information, University of Michigan}
+  \city{Ann Arbor}
+  \state{Michigan}
 }
 
 
@@ -110,7 +110,7 @@
 %% The abstract is a short summary of the work to be presented in the
 %% article.
 \begin{abstract}
-    In this report, we describe our work on description-based movie retrieval. Our search engine is motivated by the idea of helping people retrieve movies when they could only remember fragments of the movies. We adopted a dataset with movie titles, descriptions and keywords as our search database. BM25+ function is adapted after we preprocess the dataset with with tokenizing, stemming, stopword and punctuation removal, and keyword addition. By calculating the harmonic mean of the ranks of the desired answers in our test cases, we are able to evaluate our system and conclude that our search engine has a fairly good performance.
+  In this report, we describe our work on description-based movie retrieval. Our search engine is motivated by the idea of helping people retrieve movies when they could only remember fragments of the movies. We adopted a dataset with movie titles, descriptions and keywords as our search database. BM25+ function is adapted after we preprocess the dataset with with tokenizing, stemming, stopword and punctuation removal, and keyword addition. By calculating the harmonic mean of the ranks of the desired answers in our test cases, we are able to evaluate our system and conclude that our search engine has a fairly good performance.
 \end{abstract}
 
 
@@ -135,490 +135,190 @@ As a result, we we aim at helping people retrieve the film they want when they c
 
 The whole process of our design process including getting data, processing data, selecting model and building interface. And the working process of our final design is shown as following figure,
 
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.5\linewidth]{process.jpg}
+  \caption{Working process of our searching system}
+\end{figure}
 
+\subsection{Dataset}
+We obtained our data from two sources:
+
+Kaggle movie dataset:
+\url{(https://www.kaggle.com/rounakbanik/the-movies-dataset#movies_metadata.csv)}
+
+IMDB website
+\url{(https://www.imdb.com/?ref_=nv_home)}
+
+We first download a csv file from Kaggle with data about overviews and imdb link for each movie. We first try to use these overviews as documents for queries. Then we find that the performance of searching can't fulfill our satisfication so we try to find more documents. Finally, after tring the summary on wikipedia and total scene description on IMDB, we choose keywords on IMDB and use python webscraping to get these data.
+
+\subsection{Basic Data processing}
+
+In this project, our retrieval system is built to retrieve movie by its description and our data document for each movie contains its overview and keywords related to it.
+
+We first scrape keyword data from a website and combined it with the overview of each movie from the Kaggle dataset into one string. Then, we tokenize the string into words and do stem and lowercase on each word and get lists of words for each document. Finally we remove stopwords and punctuations, and  the document is then ready for query. The above mentioned steps are also applied to query sentences.
+
+\subsection{Advanced Data processing}
+
+We tried two advanced methods on data to see if the performance of search can be enhanced.
+
+First, we thought of adding the synonyms of each words in query so that those words with similar mean as query words in documents would not be missed. For each query we used nltk wordnet to get synonyms for each word in the query and added them into the query. However, the performance become worse instead of bettern. We thought that may be adding synouyms made the query vaguer so that more unrelated results are searched.
+
+Also, we thought of adding weight to different kind of words in query. But that will led to another question that how should we judge the importance of different words. We thought of using part-of-speech tagger to tag each words in query and give more weight to adjectives and verbs. However, there is no distince improvement in the performance of our system. We can do further improvement on our system by trying to find more proper weighting methods on queries.
+
+\subsection{Model}
+
+We first use BM25 score function which is use to give score to each query-document pair by the term frequency(TF) of each word in the query and inverse document frequency (IDF) as following:
+
+{
+\Small
+$$
+  S = \sum_{t \in q} \cdot\left[\frac{\left(k_{1}+1\right) \\ \cdot c_{t}^{d}}{c_{t}^{d}+k_{1} \cdot\left(1-b+b \cdot \frac{l_{d}}{L}\right)}\right] \cdot \ln \left(\frac{N+1}{N_{t}}\right)
+$$
+}
+
+However, the performance of BM25 score function is not so good so we want to find a more proper score function. We tried BM25+ function. The differences between BM25+ and BM25 are that BM25+ add an additional parameter and consider the frequency of each words in query. Since the performance of BM25+ is better and can relatively meet our needs, we finally choose it as our final score function (Inspiration from \url{https://www.eecis.udel.edu/~ypeilin/pub/ictir2016_long.pdf)} which is,
+
+{
+\Small
+$$
+  S = \sum_{t \in q} \frac{\left(k_{3}+1\right) \cdot c_{t}^{q}}{k_{3}+c_{t}^{q}} \cdot\left[\frac{\left(k_{1}+1\right) \\ \cdot c_{t}^{d}}{c_{t}^{d}+k_{1} \cdot\left(1-b+b \cdot \frac{l_{d}}{L}\right)}+\delta\right] \cdot \ln \left(\frac{N+1}{N_{t}}\right)
+$$
+}
+
+
+This BM25+ function add two more parameters to change the weight of TF and IDF in the function and it make our performance better in our test query set. The performance comparison and analysis will be detailedly discussed in Result and evaluation part.
+
+\subsection{Interface}
+
+We have also built an interface for users to input the description they remember and will return the result movie name and simple overview. The movie with best score will be shown on the page and user can see more results with lower scores if he slide down the page as following graphs,
+
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\linewidth]{interface.jpg}
+  \caption{Interface}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\linewidth]{interface1.jpg}
+  \caption{Interface slide down}
+\end{figure}
+
+\section{Results and evaluation}
+
+We formulate 35 short descriptions of movies and use our search engine to
+fetch the result.
+Some of the queries come from us and some of them are from our user during
+the testing phase of our development.
+For each description, we check if the intended result is returned by the
+search engine.
+
+Then we check the rank $R$ of the expected movie returned by the search
+engine.
+We define $\frac{1}{R}$ as the precision of our search engine.
+We calculate the harmonic mean of $R$ (if the expected movie isn’t retrieved
+within the first 10 movies, R is infinity.) and use it as the evaluation for
+the search engine.
+
+This is part of the testing result from our search engine, the third coloum
+is the rank of the movie title retrieved based on BM25 BM25 and the fourth
+coloum is for BM25+.
+
+
+\begin{table}[H]
+  \caption{Part of Our Queries Test Result}
+  \label{tab:query_result}
+  \begin{tabular}{llcc}
+    \toprule
+    Query             & Answer         & $\frac{R}{\text{BM25}}$ & $\frac{R}{\text{BM25+}}$ \\
+    \midrule
+    Jack and rose     & Titanic        & 2                       & 1                        \\
+    Dinosaur          & Jurassic World & 4                       & 1                        \\
+    France revolution & Les Misérables & 4                       & 2                        \\
+    Dream thief       & Inception      & 6                       & 1                        \\
+    Boy magic school  & Harry Potter   & 9                       & 1                        \\
+    Cowboy astronaut  & Toy story      & 5                       & 1                        \\
+    Robot kill human  & Terminator     & 4                       & 1                        \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The harmonic mean of rank of the expected movies can evaluate the average
+results the user need to skim through to find the movie they intend to have.
+Thus, the lower harmonic mean of rank, the better engine we have.
+The following is the harmonic mean of rank result of BM25 and BM25+.
+
+
+\begin{table}[H]
+  \caption{Comparison of Harmonic Mean of Rank }
+  \begin{tabular}{ c  c c}
+    \toprule
+                                              & BM25  & BM25+ \\
+    \midrule
+    $ n / \sum_{i=1}^{i=n} \frac{1}{R_{i}}  $ & 2.944 & 1.449 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The following is the figure showing the sorted distribution of expected movie retrieved ranks.
+For the figure for BM25, there are a lot of queries that returns failure (greater than 10),
+while for BM25+, there is no failure and the mean of ranks is obviously lower.
+
+
+\begin{figure}[H]
+  \includegraphics[width=0.47\linewidth]{evaluation_1.png}
+  \includegraphics[width=0.47\linewidth]{evaluation_2.png}
+  \caption{Expected Movie Retreived Ranks Distribution}
+\end{figure}
+
+Thus we can evaluate our search engine as useful, for on average the user
+can expect to find the moive they want from the first and second result
+retrieved.
+
+\subsection{Comparison between our search engine and Google}
+
+It's hard to quantatively compare our search engine's capability with
+Google, because for each query, Google returns results of webpages, images
+and even links to external websites.
+However, the common behavior of Google is to treat the query ``as it is''.
+For example, when the user wants to find the movie ``Jurassic World'' when he or she only remembers
+scenes of Dinosaurs, Google will return some sophisticated documentary
+movies of ``Dinosaur'', but what the user really want is ``a popular movie in
+which dinosaurs show up''.
+Thus, for accomplishing the job of searching movie based on fragments of description, our search engine
+can beat Google.
+
+
+\section{Conclusions}
+
+The result of this project is generally satisfying with our experiments with
+it. We succeeded in returning the related results with the queries and has
+improved its performance with data processing and parameter tuning. Thus,
+with our search engine, people can mostly get the movie they referred to.
+However, the search engine might not work well with subjective feelings on
+movies since the data we used for query are neutral descriptions.
+
+\section{Future Improvements}
+During data processing, we have tried part of speech tagging on the sentence and give more weights to certain types. However, it doesn’t turn out well as we expected. We believe that digging further into this by analyzing the parse tree to evaluate the part of speeches more precisely can help with giving better weights.
+Moreover, we believe that keeping a search and view log can also help with improving accuracy. Within a series of similar searches, we can analyze the movies the user has clicked into and find the similarities to feed back into the algorithm and adjust the weights accordingly.
+
+\begin{acks}
+  Prof. Qiaozhu Mei, Mr. Wei Ai from University of Michigan;
+  Teaching Assistant [Shiyan Yan, Xinyan Zhao] for SI 650 at University of Michigan.
+\end{acks}
+
+
+%% ============================================
+%% ============================================
+%% ============================================
 %% ============================================
 
 
-\section{Template Overview}
-As noted in the introduction, the ``\verb|acmart|'' document class can
-be used to prepare many different kinds of documentation --- a
-double-blind initial submission of a full-length technical paper, a
-two-page SIGGRAPH Emerging Technologies abstract, a ``camera-ready''
-journal article, a SIGCHI Extended Abstract, and more --- all by
-selecting the appropriate {\itshape template style} and {\itshape
-        template parameters}.
+\bibliographystyle{ACM-Reference-Format} 
+\bibliography{refs}
 
-This document will explain the major features of the document
-class. For further information, the {\itshape \LaTeX\ User's Guide} is
-available from
-\url{https://www.acm.org/publications/proceedings-template}.
-
-\subsection{Template Styles}
-
-The primary parameter given to the ``\verb|acmart|'' document class is
-the {\itshape template style} which corresponds to the kind of publication
-or SIG publishing the work. This parameter is enclosed in square
-brackets and is a part of the {\verb|documentclass|} command:
-\begin{verbatim}
-  \documentclass[STYLE]{acmart}
-\end{verbatim}
-
-Journals use one of three template styles. All but three ACM journals
-use the {\verb|acmsmall|} template style:
-\begin{itemize}
-    \item {\verb|acmsmall|}: The default journal template style.
-    \item {\verb|acmlarge|}: Used by JOCCH and TAP.
-    \item {\verb|acmtog|}: Used by TOG.
-\end{itemize}
-
-The majority of conference proceedings documentation will use the {\verb|acmconf|} template style.
-\begin{itemize}
-    \item {\verb|acmconf|}: The default proceedings template style.
-    \item{\verb|sigchi|}: Used for SIGCHI conference articles.
-    \item{\verb|sigchi-a|}: Used for SIGCHI ``Extended Abstract'' articles.
-    \item{\verb|sigplan|}: Used for SIGPLAN conference articles.
-\end{itemize}
-
-\subsection{Template Parameters}
-
-In addition to specifying the {\itshape template style} to be used in
-formatting your work, there are a number of {\itshape template parameters}
-which modify some part of the applied template style. A complete list
-of these parameters can be found in the {\itshape \LaTeX\ User's Guide.}
-
-Frequently-used parameters, or combinations of parameters, include:
-\begin{itemize}
-    \item {\verb|anonymous,review|}: Suitable for a ``double-blind''
-          conference submission. Anonymizes the work and includes line
-          numbers. Use with the \verb|\acmSubmissionID| command to print the
-          submission's unique ID on each page of the work.
-    \item{\verb|authorversion|}: Produces a version of the work suitable
-          for posting by the author.
-    \item{\verb|screen|}: Produces colored hyperlinks.
-\end{itemize}
-
-This document uses the following string as the first command in the
-source file:
-\begin{verbatim}
-\documentclass[sigconf]{acmart}
-\end{verbatim}
-
-\section{Modifications}
-
-Modifying the template --- including but not limited to: adjusting
-margins, typeface sizes, line spacing, paragraph and list definitions,
-and the use of the \verb|\vspace| command to manually adjust the
-vertical spacing between elements of your work --- is not allowed.
-
-    {\bfseries Your document will be returned to you for revision if
-        modifications are discovered.}
-
-\section{Typefaces}
-
-The ``\verb|acmart|'' document class requires the use of the
-``Libertine'' typeface family. Your \TeX\ installation should include
-this set of packages. Please do not substitute other typefaces. The
-``\verb|lmodern|'' and ``\verb|ltimes|'' packages should not be used,
-as they will override the built-in typeface families.
-
-\section{Title Information}
-
-The title of your work should use capital letters appropriately -
-\url{https://capitalizemytitle.com/} has useful rules for
-capitalization. Use the {\verb|title|} command to define the title of
-your work. If your work has a subtitle, define it with the
-    {\verb|subtitle|} command.  Do not insert line breaks in your title.
-
-If your title is lengthy, you must define a short version to be used
-in the page headers, to prevent overlapping text. The \verb|title|
-command has a ``short title'' parameter:
-\begin{verbatim}
-  \title[short title]{full title}
-\end{verbatim}
-
-\section{Authors and Affiliations}
-
-Each author must be defined separately for accurate metadata
-identification. Multiple authors may share one affiliation. Authors'
-names should not be abbreviated; use full first names wherever
-possible. Include authors' e-mail addresses whenever possible.
-
-Grouping authors' names or e-mail addresses, or providing an ``e-mail
-alias,'' as shown below, is not acceptable:
-\begin{verbatim}
-  \author{Brooke Aster, David Mehldau}
-  \email{dave,judy,steve@university.edu}
-  \email{firstname.lastname@phillips.org}
-\end{verbatim}
-
-The \verb|authornote| and \verb|authornotemark| commands allow a note
-to apply to multiple authors --- for example, if the first two authors
-of an article contributed equally to the work.
-
-If your author list is lengthy, you must define a shortened version of
-the list of authors to be used in the page headers, to prevent
-overlapping text. The following command should be placed just after
-the last \verb|\author{}| definition:
-\begin{verbatim}
-  \renewcommand{\shortauthors}{McCartney, et al.}
-\end{verbatim}
-Omitting this command will force the use of a concatenated list of all
-of the authors' names, which may result in overlapping text in the
-page headers.
-
-The article template's documentation, available at
-\url{https://www.acm.org/publications/proceedings-template}, has a
-complete explanation of these commands and tips for their effective
-use.
-
-\section{Rights Information}
-
-Authors of any work published by ACM will need to complete a rights
-form. Depending on the kind of work, and the rights management choice
-made by the author, this may be copyright transfer, permission,
-license, or an OA (open access) agreement.
-
-Regardless of the rights management choice, the author will receive a
-copy of the completed rights form once it has been submitted. This
-form contains \LaTeX\ commands that must be copied into the source
-document. When the document source is compiled, these commands and
-their parameters add formatted text to several areas of the final
-document:
-\begin{itemize}
-    \item the ``ACM Reference Format'' text on the first page.
-    \item the ``rights management'' text on the first page.
-    \item the conference information in the page header(s).
-\end{itemize}
-
-Rights information is unique to the work; if you are preparing several
-works for an event, make sure to use the correct set of commands with
-each of the works.
-
-\section{CCS Concepts and User-Defined Keywords}
-
-Two elements of the ``acmart'' document class provide powerful
-taxonomic tools for you to help readers find your work in an online
-search.
-
-The ACM Computing Classification System ---
-\url{https://www.acm.org/publications/class-2012} --- is a set of
-classifiers and concepts that describe the computing
-discipline. Authors can select entries from this classification
-system, via \url{https://dl.acm.org/ccs/ccs.cfm}, and generate the
-commands to be included in the \LaTeX\ source.
-
-User-defined keywords are a comma-separated list of words and phrases
-of the authors' choosing, providing a more flexible way of describing
-the research being presented.
-
-CCS concepts and user-defined keywords are required for all short- and
-full-length articles, and optional for two-page abstracts.
-
-\section{Sectioning Commands}
-
-Your work should use standard \LaTeX\ sectioning commands:
-\verb|section|, \verb|subsection|, \verb|subsubsection|, and
-\verb|paragraph|. They should be numbered; do not remove the numbering
-from the commands.
-
-Simulating a sectioning command by setting the first word or words of
-a paragraph in boldface or italicized text is {\bfseries not allowed.}
-
-\section{Tables}
-
-The ``\verb|acmart|'' document class includes the ``\verb|booktabs|''
-package --- \url{https://ctan.org/pkg/booktabs} --- for preparing
-high-quality tables.
-
-Table captions are placed {\itshape above} the table.
-
-Because tables cannot be split across pages, the best placement for
-them is typically the top of the page nearest their initial cite.  To
-ensure this proper ``floating'' placement of tables, use the
-environment \textbf{table} to enclose the table's contents and the
-table caption.  The contents of the table itself must go in the
-\textbf{tabular} environment, to be aligned properly in rows and
-columns, with the desired horizontal and vertical rules.  Again,
-detailed instructions on \textbf{tabular} material are found in the
-\textit{\LaTeX\ User's Guide}.
-
-Immediately following this sentence is the point at which
-Table~\ref{tab:freq} is included in the input file; compare the
-placement of the table here with the table in the printed output of
-this document.
-
-\begin{table}
-    \caption{Frequency of Special Characters}
-    \label{tab:freq}
-    \begin{tabular}{ccl}
-        \toprule
-        Non-English or Math & Frequency   & Comments          \\
-        \midrule
-        \O                  & 1 in 1,000  & For Swedish names \\
-        $\pi$               & 1 in 5      & Common in math    \\
-        \$                  & 4 in 5      & Used in business  \\
-        $\Psi^2_1$          & 1 in 40,000 & Unexplained usage \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-To set a wider table, which takes up the whole width of the page's
-live area, use the environment \textbf{table*} to enclose the table's
-contents and the table caption.  As with a single-column table, this
-wide table will ``float'' to a location deemed more
-desirable. Immediately following this sentence is the point at which
-Table~\ref{tab:commands} is included in the input file; again, it is
-instructive to compare the placement of the table here with the table
-in the printed output of this document.
-
-\begin{table*}
-    \caption{Some Typical Commands}
-    \label{tab:commands}
-    \begin{tabular}{ccl}
-        \toprule
-        Command                    & A Number & Comments         \\
-        \midrule
-        \texttt{{\char'134}author} & 100      & Author           \\
-        \texttt{{\char'134}table}  & 300      & For tables       \\
-        \texttt{{\char'134}table*} & 400      & For wider tables \\
-        \bottomrule
-    \end{tabular}
-\end{table*}
-
-\section{Math Equations}
-You may want to display math equations in three distinct styles:
-inline, numbered or non-numbered display.  Each of the three are
-discussed in the next sections.
-
-\subsection{Inline (In-text) Equations}
-A formula that appears in the running text is called an inline or
-in-text formula.  It is produced by the \textbf{math} environment,
-which can be invoked with the usual
-\texttt{{\char'134}begin\,\ldots{\char'134}end} construction or with
-the short form \texttt{\$\,\ldots\$}. You can use any of the symbols
-and structures, from $\alpha$ to $\omega$, available in
-\LaTeX~\cite{Lamport:LaTeX}; this section will simply show a few
-examples of in-text equations in context. Notice how this equation:
-\begin{math}
-    \lim_{n\rightarrow \infty}x=0
-\end{math},
-set here in in-line math style, looks slightly different when
-set in display style.  (See next section).
-
-\subsection{Display Equations}
-A numbered display equation---one set off by vertical space from the
-text and centered horizontally---is produced by the \textbf{equation}
-environment. An unnumbered display equation is produced by the
-\textbf{displaymath} environment.
-
-Again, in either environment, you can use any of the symbols and
-structures available in \LaTeX\@; this section will just give a couple
-of examples of display equations in context.  First, consider the
-equation, shown as an inline equation above:
-\begin{equation}
-    \lim_{n\rightarrow \infty}x=0
-\end{equation}
-Notice how it is formatted somewhat differently in
-the \textbf{displaymath}
-environment.  Now, we'll enter an unnumbered equation:
-\begin{displaymath}
-    \sum_{i=0}^{\infty} x + 1
-\end{displaymath}
-and follow it with another numbered equation:
-\begin{equation}
-    \sum_{i=0}^{\infty}x_i=\int_{0}^{\pi+2} f
-\end{equation}
-just to demonstrate \LaTeX's able handling of numbering.
-
-\section{Figures}
-
-The ``\verb|figure|'' environment should be used for figures. One or
-more images can be placed within a figure. If your figure contains
-third-party material, you must clearly identify it as such, as shown
-in the example below.
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=\linewidth]{sample-franklin}
-    \caption{1907 Franklin Model D roadster. Photograph by Harris \&
-        Ewing, Inc. [Public domain], via Wikimedia
-        Commons. (\url{https://goo.gl/VLCRBB}).}
-    \Description{The 1907 Franklin Model D roadster.}
-\end{figure}
-
-Your figures should contain a caption which describes the figure to
-the reader. Figure captions go below the figure. Your figures should
-    {\bfseries also} include a description suitable for screen readers, to
-assist the visually-challenged to better understand your work.
-
-Figure captions are placed {\itshape below} the figure.
-
-\subsection{The ``Teaser Figure''}
-
-A ``teaser figure'' is an image, or set of images in one figure, that
-are placed after all author and affiliation information, and before
-the body of the article, spanning the page. If you wish to have such a
-figure in your article, place the command immediately before the
-\verb|\maketitle| command:
-\begin{verbatim}
-  \begin{teaserfigure}
-    \includegraphics[width=\textwidth]{sampleteaser}
-    \caption{figure caption}
-    \Description{figure description}
-  \end{teaserfigure}
-\end{verbatim}
-
-\section{Citations and Bibliographies}
-
-The use of \BibTeX\ for the preparation and formatting of one's
-references is strongly recommended. Authors' names should be complete
---- use full first names (``Donald E. Knuth'') not initials
-(``D. E. Knuth'') --- and the salient identifying features of a
-reference should be included: title, year, volume, number, pages,
-article DOI, etc.
-
-The bibliography is included in your source document with these two
-commands, placed just before the \verb|\end{document}| command:
-\begin{verbatim}
-  \bibliographystyle{ACM-Reference-Format}
-  \bibliography{bibfile}
-\end{verbatim}
-where ``\verb|bibfile|'' is the name, without the ``\verb|.bib|''
-suffix, of the \BibTeX\ file.
-
-Citations and references are numbered by default. A small number of
-ACM publications have citations and references formatted in the
-``author year'' style; for these exceptions, please include this
-command in the {\bfseries preamble} (before
-``\verb|\begin{document}|'') of your \LaTeX\ source:
-\begin{verbatim}
-  \citestyle{acmauthoryear}
-\end{verbatim}
-
-Some examples.  A paginated journal article \cite{Abril07}, an
-enumerated journal article \cite{Cohen07}, a reference to an entire
-issue \cite{JCohen96}, a monograph (whole book) \cite{Kosiur01}, a
-monograph/whole book in a series (see 2a in spec. document)
-\cite{Harel79}, a divisible-book such as an anthology or compilation
-\cite{Editor00} followed by the same example, however we only output
-the series if the volume number is given \cite{Editor00a} (so
-Editor00a's series should NOT be present since it has no vol. no.),
-a chapter in a divisible book \cite{Spector90}, a chapter in a
-divisible book in a series \cite{Douglass98}, a multi-volume work as
-book \cite{Knuth97}, an article in a proceedings (of a conference,
-symposium, workshop for example) (paginated proceedings article)
-\cite{Andler79}, a proceedings article with all possible elements
-\cite{Smith10}, an example of an enumerated proceedings article
-\cite{VanGundy07}, an informally published work \cite{Harel78}, a
-doctoral dissertation \cite{Clarkson85}, a master's thesis:
-\cite{anisi03}, an online document / world wide web resource
-\cite{Thornburg01, Ablamowicz07, Poker06}, a video game (Case 1)
-\cite{Obama08} and (Case 2) \cite{Novak03} and \cite{Lee05} and
-(Case 3) a patent \cite{JoeScientist001}, work accepted for
-publication \cite{rous08}, 'YYYYb'-test for prolific author
-\cite{SaeediMEJ10} and \cite{SaeediJETC10}. Other cites might
-contain 'duplicate' DOI and URLs (some SIAM articles)
-\cite{Kirschmer:2010:AEI:1958016.1958018}. Boris / Barbara Beeton:
-multi-volume works as books \cite{MR781536} and \cite{MR781537}. A
-couple of citations with DOIs:
-\cite{2004:ITE:1009386.1010128,Kirschmer:2010:AEI:1958016.1958018}. Online
-citations: \cite{TUGInstmem, Thornburg01, CTANacmart}. Artifacts:
-\cite{R} and \cite{UMassCitations}.
-
-\section{Acknowledgments}
-
-Identification of funding sources and other support, and thanks to
-individuals and groups that assisted in the research and the
-preparation of the work should be included in an acknowledgment
-section, which is placed just before the reference section in your
-document.
-
-This section has a special environment:
-\begin{verbatim}
-  \begin{acks}
-  ...
-  \end{acks}
-\end{verbatim}
-so that the information contained therein can be more easily collected
-during the article metadata extraction phase, and to ensure
-consistency in the spelling of the section heading.
-
-Authors should not prepare this section as a numbered or unnumbered {\verb|\section|}; please use the ``{\verb|acks|}'' environment.
-
-\section{Appendices}
-
-If your work needs an appendix, add it before the
-``\verb|\end{document}|'' command at the conclusion of your source
-document.
-
-Start the appendix with the ``\verb|appendix|'' command:
-\begin{verbatim}
-  \appendix
-\end{verbatim}
-and note that in the appendix, sections are lettered, not
-numbered. This document has two appendices, demonstrating the section
-and subsection identification method.
-
-\section{SIGCHI Extended Abstracts}
-
-The ``\verb|sigchi-a|'' template style (available only in \LaTeX\ and
-not in Word) produces a landscape-orientation formatted article, with
-a wide left margin. Three environments are available for use with the
-``\verb|sigchi-a|'' template style, and produce formatted output in
-the margin:
-\begin{itemize}
-    \item {\verb|sidebar|}:  Place formatted text in the margin.
-    \item {\verb|marginfigure|}: Place a figure in the margin.
-    \item {\verb|margintable|}: Place a table in the margin.
-\end{itemize}
-
-%%
-%% The acknowledgments section is defined using the "acks" environment
-%% (and NOT an unnumbered section). This ensures the proper
-%% identification of the section in the article metadata, and the
-%% consistent spelling of the heading.
-\begin{acks}
-    To Robert, for the bagels and explaining CMYK and color spaces.
-\end{acks}
-
-%%
-%% The next two lines define the bibliography style to be used, and
-%% the bibliography file.
-\bibliographystyle{ACM-Reference-Format}
-\bibliography{sample-base}
-
-%%
-%% If your work has an appendix, this is the place to put it.
-\appendix
-
-\section{Research Methods}
-
-\subsection{Part One}
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi
-malesuada, quam in pulvinar varius, metus nunc fermentum urna, id
-sollicitudin purus odio sit amet enim. Aliquam ullamcorper eu ipsum
-vel mollis. Curabitur quis dictum nisl. Phasellus vel semper risus, et
-lacinia dolor. Integer ultricies commodo sem nec semper.
-
-\subsection{Part Two}
-
-Etiam commodo feugiat nisl pulvinar pellentesque. Etiam auctor sodales
-ligula, non varius nibh pulvinar semper. Suspendisse nec lectus non
-ipsum convallis congue hendrerit vitae sapien. Donec at laoreet
-eros. Vivamus non purus placerat, scelerisque diam eu, cursus
-ante. Etiam aliquam tortor auctor efficitur mattis.
-
-\section{Online Resources}
-
-Nam id fermentum dui. Suspendisse sagittis tortor a nulla mollis, in
-pulvinar ex pretium. Sed interdum orci quis metus euismod, et sagittis
-enim maximus. Vestibulum gravida massa ut felis suscipit
-congue. Quisque mattis elit a risus ultrices commodo venenatis eget
-dui. Etiam sagittis eleifend elementum.
-
-Nam interdum magna at lectus dignissim, ac dignissim lorem
-rhoncus. Maecenas eu arcu ac neque placerat aliquam. Nunc pulvinar
-massa et mattis lacinia.
 
 \end{document}
 \endinput
