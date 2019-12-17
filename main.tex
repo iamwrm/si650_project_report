@@ -81,7 +81,7 @@
 
     \subsection{Model}
 
-    We first use BM25 score function which is use to give score to each query-document pair by the term frequency(TF) of each word in the query and inverse document frequency(IDF) as following:
+    We first use BM25 score function which is use to give score to each query-document pair by the term frequency(TF) of each word in the query and inverse document frequency (IDF) as following:
 
     {
     \tiny
@@ -102,7 +102,7 @@
 
     This BM25+ function add two more parameters to change the weight of TF and IDF in the function and it make our performance better in our test query set. The performance comparison and analysis will be detailedly discussed in Result and evaluation part.
 
-    \subsection{Interface }
+    \subsection{Interface}
 
     We have also built an interface for users to input the description they remember and will return the result movie name and simple overview. The movie with best score will be shown on the page and user can see more results with lower scores if he slide down the page as following graphs:
 
@@ -120,13 +120,60 @@
 
     \section{Results and evaluation}
 
-    We formulate 35 short descriptions of movies and use our search engine to fetch the result. Then we check the rank R of the expected movie. We can then define $\frac{1}{R}$ as the precision of our search engine.
+    We formulate 35 short descriptions of movies and use our search engine to
+    fetch the result.
+    Some of the queries come from us and some of them are from our user during
+    the testing phase of our development.
+    For each description, we check if the intended result is returned by the
+    search engine.
 
-    We calculate the harmonic Mean of R (if the expected result isn’t retrieved, R is infinity.) and use it as the evaluation for the search engine.
+    Then we check the rank $R$ of the expected movie returned by the search
+    engine.
+    We define $\frac{1}{R}$ as the precision of our search engine.
+    We calculate the harmonic mean of $R$ (if the expected movie isn’t retrieved
+    within the first 10 movies, R is infinity.) and use it as the evaluation for
+    the search engine.
+    The harmonic mean of rank of the expected movies evaluate the average
+    results the user need to skim to find the movie they intend to have.
+    Thus, the lower harmonic mean of rank, the better engine we have.
+
+    This is the result of our design, the first coloum is the evaluation of
+    based on BM25 and the second coloum is for BM25+.
+
+        
+    \begin{Figure}
+        \centering
+        \begin{tabular}{ |c | c |c|}
+            \hline
+                                                           & BM25  & BM25+ \\ \hline
+            $\frac{n}{\sum_{i=1}^{i=n} \frac{1}{R_{i}} } $ & 2.944 & 1.449 \\  \hline
+        \end{tabular}
+        \captionof{figure}{Comparison of Harmonic Mean of Rank }
+    \end{Figure}
+
+    The following is the figure showing the sorted distribution of expected movie retrieved ranks.
+    For the figure for BM25, there are a lot of queries that returns failure (greater than 10), 
+    while for BM25+, there is no failure and the mean of ranks is obviously lower. 
+
+    \begin{Figure}
+        \center
+        \includegraphics[width=0.47\linewidth]{evaluation_1.png}
+        \includegraphics[width=0.47\linewidth]{evaluation_2.png}
+        \captionof{figure}{Expected Movie Retreived Ranks Distribution}
+    \end{Figure}
+
+    Thus we can evaluate our search engine as useful, for on average the user
+    can expect to find the moive they want from the first and second result
+    retrieved.
 
     \section{Conclusions}
 
-    The result of this project is generally satisfying with our experiments with it. We succeeded in returning the related results with the queries and has improved its performance with data processing and parameter tuning. Thus, with our search engine, people can mostly get the movie they referred to. However, the search engine might not work well with subjective feelings on movies since the data we used for query are neutral descriptions.
+    The result of this project is generally satisfying with our experiments with
+    it. We succeeded in returning the related results with the queries and has
+    improved its performance with data processing and parameter tuning. Thus,
+    with our search engine, people can mostly get the movie they referred to.
+    However, the search engine might not work well with subjective feelings on
+    movies since the data we used for query are neutral descriptions.
 
     \section{Future Improvements}
     During data processing, we have tried part of speech tagging on the sentence and give more weights to certain types. However, it doesn’t turn out well as we expected. We believe that digging further into this by analyzing the parse tree to evaluate the part of speeches more precisely can help with giving better weights.
