@@ -144,11 +144,9 @@ The whole process of our design process including getting data, processing data,
 \subsection{Dataset}
 We obtained our data from two sources:
 
-Kaggle movie dataset:
-\url{(https://www.kaggle.com/rounakbanik/the-movies-dataset#movies_metadata.csv)}
+Kaggle movie dataset\cite{kaggle1}
 
-IMDB website
-\url{(https://www.imdb.com/?ref_=nv_home)}
+IMDB website\cite{imdb1}
 
 We first download a csv file from Kaggle with data about overviews and imdb link for each movie. We first try to use these overviews as documents for queries. Then we find that the performance of searching can't fulfill our satisfication so we try to find more documents. Finally, after tring the summary on wikipedia and total scene description on IMDB, we choose keywords on IMDB and use python webscraping to get these data.
 
@@ -171,13 +169,12 @@ Also, we thought of adding weight to different kind of words in query. But that 
 We first use BM25 score function which is use to give score to each query-document pair by the term frequency(TF) of each word in the query and inverse document frequency (IDF) as following:
 
 {
-\Small
 $$
   S = \sum_{t \in q} \cdot\left[\frac{\left(k_{1}+1\right) \\ \cdot c_{t}^{d}}{c_{t}^{d}+k_{1} \cdot\left(1-b+b \cdot \frac{l_{d}}{L}\right)}\right] \cdot \ln \left(\frac{N+1}{N_{t}}\right)
 $$
 }
 
-However, the performance of BM25 score function is not so good so we want to find a more proper score function. We tried BM25+ function. The differences between BM25+ and BM25 are that BM25+ add an additional parameter and consider the frequency of each words in query. Since the performance of BM25+ is better and can relatively meet our needs, we finally choose it as our final score function (Inspiration from \url{https://www.eecis.udel.edu/~ypeilin/pub/ictir2016_long.pdf)} which is,
+However, the performance of BM25 score function is not so good so we want to find a more proper score function. We tried BM25+ function. The differences between BM25+ and BM25 are that BM25+ add an additional parameter and consider the frequency of each words in query. Since the performance of BM25+ is better and can relatively meet our needs, we finally choose it as our final score function  (Inspiration from \cite{yang2016reproducibility} which is,
 
 {
 \Small
@@ -316,7 +313,7 @@ Moreover, we believe that keeping a search and view log can also help with impro
 %% ============================================
 
 
-\bibliographystyle{ACM-Reference-Format} 
+\bibliographystyle{ACM-Reference-Format}
 \bibliography{refs}
 
 
