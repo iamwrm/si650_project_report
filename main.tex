@@ -13,7 +13,7 @@
   {\par\medskip\noindent\minipage{\linewidth}}
   {\endminipage\par\medskip}
 
-\usepackage[letterpaper,  margin=1in]{geometry}
+\usepackage[letterpaper,  margin=0.7in]{geometry}
 
 \title{Movie Search Engine Based on Description}
 
@@ -133,14 +133,32 @@
     We calculate the harmonic mean of $R$ (if the expected movie isn’t retrieved
     within the first 10 movies, R is infinity.) and use it as the evaluation for
     the search engine.
-    The harmonic mean of rank of the expected movies evaluate the average
-    results the user need to skim to find the movie they intend to have.
+
+    This is part of the testing result from our search engine, the third coloum
+    is the rank of the movie title retrieved based on BM25 BM25 and the fourth
+    coloum is for BM25+.
+
+    \begin{Figure}
+        \centering
+        \begin{tabular}{ |l | l |l|l|} \hline
+            Query             & Answer         & $\frac{R}{\text{BM25}}$ & $\frac{R}{\text{BM25+}}$ \\ \hline
+            Jack and rose     & Titanic        & 2                       & 1                        \\ \hline
+            Dinosaur          & Jurassic World & 4                       & 1                        \\ \hline
+            France revolution & Les Misérables & 4                       & 2                        \\ \hline
+            Dream thief       & Inception      & 6                       & 1                        \\ \hline
+            Boy magic school  & Harry Potter   & 9                       & 1                        \\ \hline
+            Cowboy astronaut  & Toy story      & 5                       & 1                        \\ \hline
+            Robot kill human  & Terminator     & 4                       & 1                        \\ \hline
+        \end{tabular}
+        \captionof{figure}{Part of Our Queries Test Result}
+    \end{Figure}
+
+
+    The harmonic mean of rank of the expected movies can evaluate the average
+    results the user need to skim through to find the movie they intend to have.
     Thus, the lower harmonic mean of rank, the better engine we have.
+    The following is the harmonic mean of rank result of BM25 and BM25+.
 
-    This is the result of our design, the first coloum is the evaluation of
-    based on BM25 and the second coloum is for BM25+.
-
-        
     \begin{Figure}
         \centering
         \begin{tabular}{ |c | c |c|}
@@ -152,8 +170,8 @@
     \end{Figure}
 
     The following is the figure showing the sorted distribution of expected movie retrieved ranks.
-    For the figure for BM25, there are a lot of queries that returns failure (greater than 10), 
-    while for BM25+, there is no failure and the mean of ranks is obviously lower. 
+    For the figure for BM25, there are a lot of queries that returns failure (greater than 10),
+    while for BM25+, there is no failure and the mean of ranks is obviously lower.
 
     \begin{Figure}
         \center
